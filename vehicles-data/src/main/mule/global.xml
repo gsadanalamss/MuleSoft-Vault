@@ -10,6 +10,6 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
 	<db:config name="Database_Config" doc:name="Database Config" doc:id="f34b9ae0-e51f-4ddf-a06b-a58474f9a967" >
-		<db:my-sql-connection host="127.0.0.1" port="3306" user="root" password="root" database="vehicles"/>
+		<db:my-sql-connection host="127.0.0.1" port="3306" user='root' password="root" database="vehicles"/>
 	</db:config>
 </mule>
