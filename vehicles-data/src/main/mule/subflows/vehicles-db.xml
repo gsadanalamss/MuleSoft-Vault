@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="fetch-vehicles-Sub_Flow" doc:id="4ea534b1-45ad-4795-9712-b603b1a21cc5" >
+		<db:select doc:name="Select" doc:id="0bbcb0a2-3b4f-45e7-aa14-55e405106267" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from vehicles;]]></db:sql>
+		</db:select>
+	</sub-flow>
+	<sub-flow name="fetch-vehicle-by-id-Sub_Flow" doc:id="2b39f597-e571-45e4-b273-ac93a7432743" >
+		<db:query-single doc:name="Query single" doc:id="55f33c0b-ef60-4e93-8340-71932a9f0ad4" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from vehicles where id= :v_id;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[v_id: attributes.uriParams.'id' as String]]]></db:input-parameters>
+		</db:query-single>
+	</sub-flow>
+	
+</mule>

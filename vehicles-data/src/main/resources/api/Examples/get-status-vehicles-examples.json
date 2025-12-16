@@ -1,0 +1,18 @@
+{
+  "vehicles": [
+    {
+      "id": "V001",
+      "make": "Toyota",
+      "model": "Corolla",
+      "year": 2022,
+      "status": "Active"
+    },
+    {
+      "id": "V003",
+      "make": "Audi",
+      "model": "A8",
+      "year": 2021,
+      "status": "Active"
+    }
+  ]
+}
