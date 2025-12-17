@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="until-successfulFlow" doc:id="6c409cb4-b8db-42b7-8a7d-38968262ffe7" >
+		<http:listener doc:name="Listener" doc:id="98d66312-ac63-4972-b93b-d31169bfbff4" config-ref="HTTP_Listener_config" path="until-successful"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="8ba1f78b-0eae-4587-a595-f19d9bc51a2a">
+			<http:request doc:name="Request" doc:id="05e5a3d0-fa01-4f07-8c46-d34251ea3f0d" config-ref="HTTP_Request_config" path="/api/v1/employees">
+				<http:response-validator >
+					<http:success-status-code-validator values="500" />
+				</http:response-validator>
+			</http:request>
+		</until-successful>
+	</flow>
+</mule>
