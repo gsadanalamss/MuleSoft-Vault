@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="user-authentication-sapi-test-suite.xml" />
+	<munit:test name="user-authentication-sapi-test-suite-user-authentication-sapi-mainTest" doc:id="9b276159-73a7-4b4d-ac2d-bb6718d34031" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to user-authentication-sapi-main" doc:id="ea35da47-34a3-4e5d-8671-da89fe89bc5a" name="user-authentication-sapi-main"/>
+		</munit:execution>
+	</munit:test>
+
+
+</mule>

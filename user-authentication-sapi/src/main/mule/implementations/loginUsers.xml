@@ -12,8 +12,10 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 		<set-variable value="#[payload.password]" doc:name="Set Variable requestPassword" doc:id="62feb076-35d5-4afc-8cb9-76294647b4fd" variableName="requestPassword"/>
 		<os:retrieve doc:name="Retrieve" doc:id="39810a52-ba29-4e79-a3d7-e57f2399400d" key="#[payload.userName]" objectStore="user_Object_store">
 		</os:retrieve>
+		<set-variable value="#[payload.password]" doc:name="Set Variable storedHashedPassword" doc:id="cf2e7261-5fb7-4c6b-bc33-6e8f099e1dcb" variableName="storedHashedPassword"/>
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;import SHA1 from dw::Crypto&#10;import toBase64 from dw::core::Binaries&#10;var unqcode = payload.code&#10;var password = vars.requestPassword&#10;&#10;var newHashedPassword = toBase64(&#10;	SHA1(&#10;		(password ++ unqcode) as Binary&#10;	)&#10;)&#10;---&#10;newHashedPassword: newHashedPassword]" doc:name="Set Variable newHashedPassword" doc:id="8f6f5e2a-2275-45e6-abab-256b8385df80" variableName="newHashedPassword"/>
 		<try doc:name="Try" doc:id="d1967ce8-f9da-4a57-a792-2be32c865fd9" >
-			<validation:is-true doc:name="Is true" doc:id="53af69b0-193f-4b3a-bd63-52a3d26a1b69" expression="#[payload.password == vars.requestPassword]" message="Successfully logged in" />
+			<validation:is-true doc:name="Is true" doc:id="53af69b0-193f-4b3a-bd63-52a3d26a1b69" expression="#[vars.storedHashedPassword == vars.newHashedPassword.newHashedPassword]" message="Invalid username or password" />
 			<error-handler >
 				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="343d6d84-e19d-44ea-9429-4b4b0d19712b" >
 					<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"message": "Invalid username or password"&#10;}]' doc:name="Set Payload" doc:id="7985d279-b8f2-4304-99a6-82502fb1fb00" />

@@ -26,12 +26,19 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 				<os:store doc:name="Store" doc:id="a2dab9d4-0f6b-4788-b4ce-440616002473" key="#[payload.userName]" objectStore="user_Object_store" failIfPresent="true" >
 					<os:value ><![CDATA[#[%dw 2.0
 output application/json
+import SHA1 from dw::Crypto
+import toBase64 from dw::core::Binaries
+var unqcode = uuid()
+var hashedPassword = toBase64(SHA1(
+	(payload.password ++ unqcode) as Binary
+	))
 ---
 {
 	"firstName": payload.firstName,
 	"lastName": payload.lastName,
 	"userName": payload.userName,
-	"password": payload.password
+	"password": hashedPassword,
+	"code": unqcode
 }]]]></os:value>
 				</os:store>
 				<ee:transform doc:name="Transform Message">
@@ -49,7 +56,7 @@ output application/json
 		</choice>
 		<error-handler >
 			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="887a8682-98cd-4886-ac13-29aaaf9c86e8" type="OS:KEY_ALREADY_EXISTS">
-				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"message" : vars.user ++ " already exists, Please try again"&#10;}]' doc:name="Set Payload" doc:id="5fc9baf8-57cd-491d-a208-3dc9017b2168" />
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"message" : vars.user ++ " already exists, Please try again."&#10;}]' doc:name="Set Payload" doc:id="5fc9baf8-57cd-491d-a208-3dc9017b2168" />
 				<logger level="INFO" doc:name="Logger" doc:id="0b3fe4fb-902d-4cfd-a71d-737803ce0276" message='#[vars.user ++ " already exists, Please try again" as String]' />
 			</on-error-continue>
 		</error-handler>
