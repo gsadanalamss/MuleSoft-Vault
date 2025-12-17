@@ -1,0 +1,7 @@
+{
+  "userName" : "TestUser",
+  "firstName" : "Alice",
+  "lastName" : "Wonderland",
+  "password" : "Pass#123",
+  "confirmPassword": "Pass#123"
+}

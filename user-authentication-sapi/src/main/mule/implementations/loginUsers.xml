@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	
+	<flow name="post:\login:application\json:user-authentication-sapi-config">
+		<set-variable value="#[payload.password]" doc:name="Set Variable requestPassword" doc:id="1ce41fa0-e616-4006-92e1-284ebccd0719" variableName="requestPassword"/>
+		<os:retrieve doc:name="Retrieve" doc:id="89687629-a0e5-46f8-ad9d-833f77c20ddf" key="#[payload.userName]" objectStore="user_Object_store">
+		</os:retrieve>
+		<set-variable value="#[payload.password]" doc:name="Set Variable storedHashedPassword" doc:id="9236f5bc-08cc-45ce-859c-b282e65a7a38" variableName="storedHashedPassword"/>
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;import SHA1 from dw::Crypto&#10;import toBase64 from dw::core::Binaries&#10;var unqcode = payload.code&#10;var password = vars.requestPassword&#10;&#10;var newHashedPassword = toBase64(&#10;	SHA1(&#10;		(password ++ unqcode) as Binary&#10;	)&#10;)&#10;---&#10;newHashedPassword: newHashedPassword]" doc:name="Set Variable newHashedPassword" doc:id="43b11c2b-0319-421a-983c-f335c8a309df" variableName="newHashedPassword"/>
+		<choice doc:name="Choice" doc:id="c4c68f10-9e57-4251-81bd-6c644b0a539a" >
+			<when expression='#[vars.storedHashedPassword == vars.newHashedPassword.newHashedPassword]'>
+				<logger level="INFO" doc:name="Logger" doc:id="52e986d3-8e5c-4fbc-a41c-93eb3563453f" message='#[payload.userName ++ " Successfully logged in"]' />
+				<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "Success",
+  message: payload.userName ++ " is successfully logged in."
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="675a3d90-81ed-477a-8d78-0c7947d7e95e" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "Failed",
+  message: "Invalid userName or password."
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="55044656-4a82-4b75-9f1a-6ac5c91ac40a" type="OS:KEY_NOT_FOUND">
+				<ee:transform doc:name="Transform Message" doc:id="d16f9af6-0065-40fc-bd44-9cde79ac0cf2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "User not found."
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+		</error-handler>
+    
+</flow>
+	
+	</mule>

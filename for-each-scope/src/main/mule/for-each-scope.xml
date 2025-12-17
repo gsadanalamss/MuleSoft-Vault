@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+
+<flow name="for-each-Flow" doc:id="a23e96cb-42b2-4506-a6d3-2840d04221c7" >
+		<http:listener doc:name="Listener" doc:id="9eaf2e38-7526-4be4-989b-001314a975ba" config-ref="HTTP_Listener_config" path="for-each"/>
+		<logger level="INFO" doc:name="Logger" doc:id="900fd278-19d6-4520-aa17-f24efa3a971b" message="#[payload]"/>
+		<foreach doc:name="For Each" doc:id="9af57d0a-37b5-4dc2-a1e8-7742b9656f20" collection="#[payload.Employees]">
+			<logger level="INFO" doc:name="Logger" doc:id="575b9c51-b246-4016-98be-c4e41b2ace11" message="for each loop #[payload]"/>
+		</foreach>
+	</flow>
+	
+</mule>

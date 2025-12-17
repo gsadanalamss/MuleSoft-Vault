@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	
+	<flow name="post:\register:application\json:user-authentication-sapi-config" doc:id="2403a85c-8c79-40fd-ae88-f9047b60d430">
+		<choice doc:name="Choice" doc:id="daa80379-9fe0-4a6c-be41-49f4cff003e4" >
+			<when expression="#[payload.password == payload.confirmPassword]">
+				<set-variable value="#[payload.userName]" doc:name="Set Variable user" doc:id="67583c72-3ad2-4a43-8707-6727108ae97d" variableName="user" />
+				<os:store doc:name="Store" doc:id="25c7924e-6262-4667-aa66-a86969ac3b08" key="#[payload.userName]" objectStore="user_Object_store" failIfPresent="true">
+					<os:value><![CDATA[#[%dw 2.0
+output application/json
+import SHA1 from dw::Crypto
+import toBase64 from dw::core::Binaries
+var unqcode = uuid()
+var hashedPassword = toBase64(SHA1(
+	(payload.password ++ unqcode) as Binary
+	))
+---
+{
+	"firstName": payload.firstName,
+	"lastName": payload.lastName,
+	"userName": payload.userName,
+	"password": hashedPassword,
+	"code": unqcode
+}]]]></os:value>
+				</os:store>
+				<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  userName: payload.userName
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="884919a7-ba00-455d-928d-f0b919658c26" message='#[payload.userName ++ " was successfully registered"]' />
+			</when>
+			<when expression="#[payload.password != payload.confirmPassword]">
+				<ee:transform doc:name="Transform Message" doc:id="ac660264-ba8d-444d-83e7-d7c398e5a6f1" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	message: "The password and confirm Password should be the same."
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="a6080623-08fd-49b8-8830-3ec35a8c4316" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Invalid fields"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e6c36834-47a5-4346-86cd-8f27719f748f" type="OS:KEY_ALREADY_EXISTS">
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"message" : vars.user ++ " already exists, Please try again."&#10;}]' doc:name="Set Payload" doc:id="380ffe1c-5201-45a6-a0fb-11ca989c4cb2" />
+				<logger level="INFO" doc:name="Logger" doc:id="2ffa43d3-11ef-46d9-bf24-2d77216fb1ea" message='#[vars.user ++ " already exists, Please try again" as String]' />
+			</on-error-continue>
+		</error-handler>
+    
+</flow>
+	
+	
+</mule>

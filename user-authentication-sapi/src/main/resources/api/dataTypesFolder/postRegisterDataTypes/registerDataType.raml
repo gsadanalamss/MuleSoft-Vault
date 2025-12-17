@@ -1,0 +1,34 @@
+#%RAML 1.0 DataType
+properties:
+  userName:
+    type: string
+    minLength: 3
+    maxLength: 20
+    required: true
+    example: "TestUser"
+  firstName: 
+    type: string
+    minLength: 3
+    maxLength: 20
+    required: true
+    example: "Alice"
+  lastName: 
+    type: string
+    minLength: 3
+    maxLength: 20
+    required: true
+    example: "Wonderland"
+  password: 
+    type: string
+    minLength: 6
+    maxLength: 20
+    required: true
+    example: "Pass#123"
+  confirmPassword:
+    type: string
+    minLength: 6
+    maxLength: 20
+    required: true
+    example: "Pass#123"
+
+      
