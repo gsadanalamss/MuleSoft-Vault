@@ -12,10 +12,9 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 	
 	<flow name="post:\login:application\json:user-authentication-sapi-config">
 		<set-variable value="#[payload.password]" doc:name="Set Variable requestPassword" doc:id="1ce41fa0-e616-4006-92e1-284ebccd0719" variableName="requestPassword"/>
-		<os:retrieve doc:name="Retrieve" doc:id="89687629-a0e5-46f8-ad9d-833f77c20ddf" key="#[payload.userName]" objectStore="user_Object_store">
-		</os:retrieve>
+		<flow-ref doc:name="Flow Reference" doc:id="0c5f036f-33c9-4a89-9031-60e5566cc381" name="login-user-Sub_Flow"/>
 		<set-variable value="#[payload.password]" doc:name="Set Variable storedHashedPassword" doc:id="9236f5bc-08cc-45ce-859c-b282e65a7a38" variableName="storedHashedPassword"/>
-		<set-variable value="#[%dw 2.0&#10;output application/json&#10;import SHA1 from dw::Crypto&#10;import toBase64 from dw::core::Binaries&#10;var unqcode = payload.code&#10;var password = vars.requestPassword&#10;&#10;var newHashedPassword = toBase64(&#10;	SHA1(&#10;		(password ++ unqcode) as Binary&#10;	)&#10;)&#10;---&#10;newHashedPassword: newHashedPassword]" doc:name="Set Variable newHashedPassword" doc:id="43b11c2b-0319-421a-983c-f335c8a309df" variableName="newHashedPassword"/>
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;import SHA1 from dw::Crypto&#10;import toBase64 from dw::core::Binaries&#10;var unqcode = payload.code default ""&#10;var password = vars.requestPassword&#10;&#10;var newHashedPassword = toBase64(&#10;	SHA1(&#10;		(password ++ unqcode) as Binary&#10;	)&#10;)&#10;---&#10;newHashedPassword: newHashedPassword]' doc:name="Set Variable newHashedPassword" doc:id="43b11c2b-0319-421a-983c-f335c8a309df" variableName="newHashedPassword" />
 		<choice doc:name="Choice" doc:id="c4c68f10-9e57-4251-81bd-6c644b0a539a" >
 			<when expression='#[vars.storedHashedPassword == vars.newHashedPassword.newHashedPassword]'>
 				<logger level="INFO" doc:name="Logger" doc:id="52e986d3-8e5c-4fbc-a41c-93eb3563453f" message='#[payload.userName ++ " Successfully logged in"]' />
@@ -26,7 +25,7 @@ output application/json
 ---
 {
   status: "Success",
-  message: payload.userName ++ " is successfully logged in."
+  message: payload.userName default "" ++ " is successfully logged in."
 } as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
             </ee:message>
         </ee:transform>
