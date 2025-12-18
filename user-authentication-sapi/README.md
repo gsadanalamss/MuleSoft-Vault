@@ -19,6 +19,7 @@ This ensures the keystore is available on the application classpath.
 
 Add the following entries to `config.yaml` using general, self-explanatory values:
 
+```yaml
 api:
   instanceid: "api-manager-instance-id"
 
@@ -30,6 +31,7 @@ tls:
 
 http:
   port: "https-listener-port"
+  ```
 
 ---
 
