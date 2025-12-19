@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:ftp="http://www.mulesoft.org/schema/mule/ftp" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/current/mule-ftp.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="file-operations-read-Flow" doc:id="d3b5b8d3-88f3-45f0-bd65-21285ad6aa0e" >
+		<http:listener doc:name="Listener" doc:id="6fdd838b-a053-4a08-be2f-80c1f1b4851c" config-ref="HTTP_Listener_config" path="/read" allowedMethods="GET"/>
+		<flow-ref doc:name="Flow Reference" doc:id="b26690fc-b53e-477c-8c40-fd89e3a43123" name="read-filesSub_Flow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="2cbbeea0-3d47-4713-8dd9-0ff74891141d" message="#[payload]"/>
+		
+	</flow>
+	<flow name="file-operations-write-Flow" doc:id="0058ec44-a7de-4092-a6e7-4235ef3baaa5" >
+		<http:listener doc:name="Listener" doc:id="56e6eb10-33e8-4f00-aa92-3a1647f7272b" config-ref="HTTP_Listener_config" path="/write" allowedMethods="POST"/>
+		<flow-ref doc:name="Flow Reference" doc:id="ee57cb45-78cb-4d4e-8fc2-1495fd5c3944" name="write-filesSub_Flow" />
+		<logger level="INFO" doc:name="Logger" doc:id="58b0885e-f98d-4333-98b6-2318b5672f96" message="#[payload]" />
+	</flow>
+</mule>

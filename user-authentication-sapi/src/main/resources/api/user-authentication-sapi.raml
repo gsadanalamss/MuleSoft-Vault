@@ -1,0 +1,66 @@
+#%RAML 1.0
+title: user-authentication-sapi
+description: Used for register and login purpose.
+securitySchemes:
+  BasicAuthentication : 
+    type: Basic Authentication
+
+/register:
+  post:
+    body:
+      application/json:
+        type: !include dataTypesFolder/postRegisterDataTypes/registerDataType.raml
+        example: !include examplesFolder/postRegisterExamples/registerExamples.json
+    responses:
+      200:
+        body:
+          application/json:
+            type: !include dataTypesFolder/postRegisterDataTypes/registerResponse.raml
+            example: !include examplesFolder/postRegisterExamples/registerResponse.json
+      400:
+        body:
+          application/json:
+            type: !include dataTypesFolder/postRegisterDataTypes/400StatusResponse.raml
+            example: !include examplesFolder/postRegisterExamples/400StatusResponse.json
+      500:
+        body:
+          application/json:
+            type: !include dataTypesFolder/postRegisterDataTypes/500StatusResponse.raml
+            example: !include examplesFolder/postRegisterExamples/500StatusResponse.json
+      503: 
+        body:
+          application/json:
+            type: !include dataTypesFolder/postRegisterDataTypes/503StatusResponse.raml
+            example: !include examplesFolder/postRegisterExamples/503StatusResponse.json
+              
+
+/login:
+  securedBy:
+    - BasicAuthentication
+  post:
+    body:
+      application/json:
+        type: !include dataTypesFolder/postLoginDataTypes/loginDataType.raml
+        example: !include examplesFolder/postLoginExamples/loginExamples.json
+    responses:
+      200:
+        body:
+          application/json:
+            type: !include dataTypesFolder/postLoginDataTypes/loginResponse.raml
+            example: !include examplesFolder/postLoginExamples/loginResponse.json
+      400:
+        body:
+          application/json:
+            type: !include dataTypesFolder/postLoginDataTypes/400StatusResponse.raml
+            example: !include examplesFolder/postLoginExamples/400StatusResponse.json
+      500:
+        body:
+          application/json:
+            type: !include dataTypesFolder/postLoginDataTypes/500StatusResponse.raml
+            example: !include examplesFolder/postLoginExamples/500StatusResponse.json
+        
+      503:
+        body:
+          application/json:
+            type: !include dataTypesFolder/postLoginDataTypes/503StatusResponse.raml
+            example: !include examplesFolder/postLoginExamples/503StatusResponse.json

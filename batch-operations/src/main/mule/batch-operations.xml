@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+		<flow name="split-csvFlow" doc:id="30c5677c-f7f5-401c-b4bd-8eff127babec" >
+		<file:listener doc:name="On New or Updated File" doc:id="cce1bcac-3cc4-4cfa-ad61-f641ec460586" config-ref="InputFile_Config" moveToDirectory="D:\File Operations\Processed">
+			<scheduling-strategy>
+				<fixed-frequency frequency="10" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</file:listener>
+			<ee:transform doc:name="Transform Message" doc:id="e2637e44-4dd0-4274-a208-afc2ceaf72df">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="f7e97856-b424-48b3-bba9-b310c96f808e" message='#["Before Batch Operations"]' />
+			<batch:job jobName="split-csvBatch_Job" doc:id="062039b0-02c2-43c2-9c50-fa367848fa7e" >
+			<batch:process-records >
+					<batch:step name="Batch_Step" doc:id="8a2e2f03-a3ba-4fd3-91f1-f240f8483b6b" >
+					<set-variable value='#[payload.Username]' doc:name="Set Variable OutputName" doc:id="2b6b7ad7-bad5-4e8a-9b8c-ba9f15ea42e3" variableName="OutputName"/>
+					<ee:transform doc:name="Transform Message" doc:id="878b948e-85fc-4222-b1d5-217ed4d8d61e" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<file:write doc:name="Write" doc:id="4bc2b0f6-8f4e-48ed-b589-5e2e5d63f647" config-ref="OutputFile_Config" path='#[vars.OutputName default "Unknown"]' mode="APPEND"/>
+						<logger level="INFO" doc:name="Logger" doc:id="f95999a7-96e1-46b4-badb-48dd3fe94ff3" message="#[payload]"/>
+				
+</batch:step>
+			</batch:process-records>
+		</batch:job>
+	</flow>
+</mule>

@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_81792629_570a_48c3_840f_acae038f8853_Output_Variables_user = String
+

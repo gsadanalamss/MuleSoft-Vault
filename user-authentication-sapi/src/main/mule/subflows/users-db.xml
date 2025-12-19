@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<sub-flow name="register-users-Sub_Flow" doc:id="81792629-570a-48c3-840f-acae038f8853" >
+		<os:store doc:name="Store" doc:id="b999797d-2fa9-4543-bbe9-98585e1a6c43" key="#[payload.userName]" failIfPresent="true" objectStore="user_Object_store" >
+			<os:value ><![CDATA[#[%dw 2.0
+output application/json
+import SHA1 from dw::Crypto
+import toBase64 from dw::core::Binaries
+var unqcode = uuid()
+var hashedPassword = toBase64(SHA1(
+	(payload.password ++ unqcode) as Binary
+	))
+---
+{
+	"firstName": payload.firstName,
+	"lastName": payload.lastName,
+	"userName": payload.userName,
+	"password": hashedPassword,
+	"code": unqcode
+}]]]></os:value>
+		</os:store>
+	</sub-flow>
+	<sub-flow name="login-user-Sub_Flow" doc:id="7c3d2416-7a73-4c9d-acd4-57a1deeafc2e" >
+		<os:retrieve doc:name="Retrieve" doc:id="0c2b0bcc-9365-45c8-8a45-dc4ae35ceb0b" key="#[payload.userName]" objectStore="user_Object_store" />
+	</sub-flow>
+</mule>

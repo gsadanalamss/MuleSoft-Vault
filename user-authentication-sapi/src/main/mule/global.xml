@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+	
+	<http:listener-config name="user-authentication-sapi-httpsListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="${http.port}" protocol="HTTPS">
+			<tls:context >
+				<tls:key-store alias="${tls.alias}" keyPassword="${tls.keyPassword}" password="${tls.password}" path="${tls.path}"/>
+			</tls:context>
+		</http:listener-connection>
+    </http:listener-config>
+    <apikit:config name="user-authentication-sapi-config" api="resource::3fcd7191-9c89-431b-9bf3-61d8f40bd622:sample-login-sapi:1.0.0:raml:zip:user-authentication-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	<os:object-store name="user_Object_store" doc:name="Object store" doc:id="85cd2690-0203-4421-b964-d5d1bbb64d8f" maxEntries="100" entryTtl="10" entryTtlUnit="HOURS" expirationIntervalUnit="HOURS" />
+	<api-gateway:autodiscovery apiId="${api.instanceid}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="6b894d5e-4404-4151-ae45-4b9705851e01" flowRef="user-authentication-sapi-main" />
+	<configuration-properties doc:name="Configuration properties" doc:id="e1a5428f-4f12-4e6a-a3b8-02f05bd1c472" file="config.yaml" />
+	
+	
+</mule>
