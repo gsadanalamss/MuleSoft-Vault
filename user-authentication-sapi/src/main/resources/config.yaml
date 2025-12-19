@@ -1,16 +1,4 @@
 api:
-<<<<<<< HEAD
-  instanceid: "20654378"
- 
-tls:
-  alias: "mule"
-  keyPassword: "password"
-  password: "password"
-  path: "keystore.jks"
-
-http:
-  port: "8081"
-=======
   instanceid: "api-manager-instance-id"
 
 tls:
@@ -21,4 +9,3 @@ tls:
 
 http:
   port: "https-listener-port"
->>>>>>> branch 'master' of https://github.com/gsadanalamss/vehicle-data.git
