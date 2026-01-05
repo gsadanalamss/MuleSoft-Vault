@@ -1,0 +1,31 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+  id:
+    type: string
+    minLength: 1
+    maxLength: 10
+    example: "V001"
+  make:
+    type: string
+    minLength: 1
+    maxLength: 10
+    example: "Audi"
+  model:
+    type: string
+    minLength: 1
+    maxLength: 10
+    example: "Q7"
+  year:
+    type: integer
+    minimum: 2000
+    maximum: 2100
+    example: 2003
+  status:
+    type: string
+    enum:
+      - Active
+      - Maintenance
+      - Inactive
+      - Reserved
+    example: "Active"

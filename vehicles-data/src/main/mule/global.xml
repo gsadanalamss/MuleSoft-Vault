@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="88ca247c-fbf9-4186-ad0a-29d40129e2b7" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="f34b9ae0-e51f-4ddf-a06b-a58474f9a967" >
+		<db:my-sql-connection host="${database.host}" port="${database.port}" user='${database.user}' password="${database.password}" database="vehicles"/>
+	</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="dbcd7747-b037-4584-b805-854aae1ab601" file="config-db.yaml" />
+	<api-gateway:autodiscovery apiId="${api.autodiscoveryid}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="bf5ff30f-48fd-4f0d-b6da-d461f5292fda" flowRef="vehicle-maintenance-api-main" />
+</mule>
