@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jira="http://www.mulesoft.org/schema/mule/jira"
+	xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd
+http://www.mulesoft.org/schema/mule/jira http://www.mulesoft.org/schema/mule/jira/current/mule-jira.xsd">
+	
+	<http:listener-config name="sentiment-analyzer-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="9af88790-e153-483b-a97d-96482683d9eb" >
+		<http:request-connection host="flow-1cc78df5-2407-434b-b7a4-2113aa22486d-uf3vxu.2oyih5-1.usa-e1.cloudhub.io" port="443" protocol="HTTPS">
+			<http:authentication >
+				<http:basic-authentication username="5fd6b171347446cc91f4f34bf7254c72" password="75880f86229E482394Ba2c45643720bd" />
+			</http:authentication>
+		</http:request-connection>
+	</http:request-config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="54e3d0e3-1a08-4544-947f-fe939c1af261" />
+	<configuration-properties doc:name="Configuration properties" doc:id="b3adbcbd-b4cc-4a0e-b529-58d69ef75024" file="connections.yaml" />
+	<ms-aichain:config name="MuleSoft_AI_Chain_Config" doc:name="MuleSoft AI Chain Config" doc:id="705bb15d-fcf6-41b2-b87b-77fca65376c6" llmType="OPENAI" configType="Environment Variables" filePath="/jira_bug_agent/src/main/resources/envVars.json" modelName="ChatGPT"/>
+	<jira:config name="Jira_Connector_Config" doc:name="Jira Connector Config" doc:id="fea4ee4b-b6da-4322-af85-bf5aa03dc4c5" >
+		<jira:basic-auth-connection username="${jira.username}" password="${jira.api}" baseUri="${jira.uri}"/>
+	</jira:config>
+	
+	
+</mule>
