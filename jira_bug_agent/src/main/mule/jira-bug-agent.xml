@@ -7,14 +7,10 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/aichain http://www.mulesoft.org/schema/mule/aichain/current/mule-aichain.xsd
 http://www.mulesoft.org/schema/mule/mulesoft-aichain http://www.mulesoft.org/schema/mule/mulesoft-aichain/current/mule-mulesoft-aichain.xsd
 http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd">
-    
-	<jira:config name="Jira_Connector_Config" doc:name="Jira Connector Config" doc:id="3398b452-f099-412f-a041-63c862d27f54" >
-		<jira:basic-auth-connection />
-	</jira:config>
 	<flow name="Jira-AI-Summary-Sentiments" doc:id="ecbe99eb-d390-45b0-ab06-802e7c6dc52d" >
-		<jira:on-updated-issue-trigger doc:name="On new and updated issue trigger" doc:id="005a3180-c483-48ad-aaac-04cb45dd1895" config-ref="Jira_Connector_Config" issueType="bug" startDate="2024-08-23">
+		<jira:on-updated-issue-trigger doc:name="On new and updated issue trigger" doc:id="005a3180-c483-48ad-aaac-04cb45dd1895" config-ref="Jira_Connector_Config1" issueType="bug" startDate="2024-08-23" projectIdOrKey="10000">
 			<scheduling-strategy >
-				<fixed-frequency />
+				<fixed-frequency frequency="1" timeUnit="MINUTES"/>
 			</scheduling-strategy>
 		</jira:on-updated-issue-trigger>
 		<set-variable value="#[payload.key]" doc:name="Jira Key" doc:id="3a312f7e-a1ef-4f2b-9448-4d2f45d2a250" variableName="key"/>
@@ -29,7 +25,7 @@ http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mu
 					<os:value ><![CDATA[#["synched"]]]></os:value>
 				</os:store>
 				<logger level="INFO" doc:name="Logger" doc:id="cf283a04-9b99-439b-9da2-adc43ea78218" message="#[payload]"/>
-				<jira:get-rest-api3-issue-comment-by-issue-id-or-key doc:name="Get Comments" doc:id="3c57ae28-ba40-4e4d-bc49-d58576567ad2" config-ref="Jira_Connector_Config" issueIdOrKey="#[vars.key]" />
+				<jira:get-rest-api3-issue-comment-by-issue-id-or-key doc:name="Get Comments" doc:id="3c57ae28-ba40-4e4d-bc49-d58576567ad2" config-ref="Jira_Connector_Config1" issueIdOrKey="#[vars.key]" />
 				<ee:transform doc:name="extract all comment bodies" doc:id="8f725d76-eba2-4a93-81a3-73968b4c4b64">
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
@@ -37,10 +33,33 @@ output application/json
 ---
 {
 	comments: payload.comments..body..content..content..text default [], 
-	description: vars.payload.fields.description.content..text default [],
-	summary: vars.payload.fields.summary 	
-		
-}]]></ee:set-payload>
+	description: vars.payload.fields.description.content..text,
+	summary: vars.payload.fields.summary 			
+}
+
+//%dw 2.0
+//output application/json
+//---
+//{
+//    comments:
+//        (
+//            (payload.comments default [])
+//                ..body
+//                ..content
+//                ..content
+//                ..text
+//        ) default [],
+//
+//    description:
+//        (
+//            (vars.payload.fields.description default {})
+//                .content default []
+//        )..text default [],
+//
+//    summary:
+//        vars.payload.fields.summary default null
+//}
+]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
 				<ee:transform doc:name="Transform Message" doc:id="2f629133-723a-4d20-b275-115a28513fa6">
@@ -54,15 +73,13 @@ write(payload, "application/json")]]></ee:set-payload>
 				<scatter-gather doc:name="Scatter-Gather" doc:id="8be657af-4236-4888-8c72-419c43148784">
 			<route>
 						<ms-aichain:agent-define-prompt-template doc:name="Agent define prompt template" 
-						doc:id="1d2bbd4f-3853-446f-9cf2-80f7f36a59d3" config-ref="MuleSoft_AI_Chain_Config"> 
-							<ms-aichain:dataset ><![CDATA[#[payload]]]></ms-aichain:dataset>
+						doc:id="1d2bbd4f-3853-446f-9cf2-80f7f36a59d3" config-ref="MuleSoft_AI_Chain_Config">
 							<ms-aichain:template ><![CDATA[You are a support representative who is tasked with creating a short summary of a case that happened between a customer and a company support rep.]]></ms-aichain:template>
 							<ms-aichain:instructions ><![CDATA[Follow the instructions precisely, do not add any information not provided. Summarize in 1 sentence, and use clear, concise, and straightforward language using the active voice and strictly avoiding the use of filler words and phrases and redundant language. Guide the next steps as maximum 2 bullet points. Keep the emotion of the summary relaxed.]]></ms-aichain:instructions>
 						</ms-aichain:agent-define-prompt-template>
 			</route>
 			<route>
-						<ms-aichain:sentiment-analyze doc:name="Sentiment analyze" doc:id="4c29c266-80d0-42df-9208-7003e8bbff26" config-ref="MuleSoft_AI_Chain_Config"> 						
-									<ms-aichain:data ><![CDATA[#[payload]]]></ms-aichain:data>
+						<ms-aichain:sentiment-analyze doc:name="Sentiment analyze" doc:id="4c29c266-80d0-42df-9208-7003e8bbff26" config-ref="MuleSoft_AI_Chain_Config">
 						</ms-aichain:sentiment-analyze>
 			</route>
 		</scatter-gather>
@@ -74,7 +91,7 @@ output application/json
 
 {
 "fields": {
-    "customfield_10045": {
+    "customfield_10038": {
           "type": "doc",
           "version": 1,
           "content": [
@@ -89,12 +106,12 @@ output application/json
             }
           ]
         },	   
-    "customfield_10038": payload."1".payload.response
+    "customfield_10039": payload."1".payload.response
     }
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-				<jira:update-rest-api3-issue-by-issue-id-or-key doc:name="Edit Issue" doc:id="36f26b7e-f52a-486e-bb97-6de89af232bf" config-ref="Jira_Connector_Config" issueIdOrKey="#[vars.key]" />
+				<jira:update-rest-api3-issue-by-issue-id-or-key doc:name="Edit Issue" doc:id="36f26b7e-f52a-486e-bb97-6de89af232bf" config-ref="Jira_Connector_Config1" issueIdOrKey="#[vars.key]" />
 			</when>
 			<otherwise >
 				<os:remove doc:name="Remove" doc:id="3f298f08-c02f-471a-b76b-de25a562993b" key="#[vars.key]" objectStore="Object_store"/>
