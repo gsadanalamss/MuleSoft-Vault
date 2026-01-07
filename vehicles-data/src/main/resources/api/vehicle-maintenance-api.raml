@@ -1,0 +1,60 @@
+#%RAML 1.0
+title: Vehicle Maintenance Management API
+description: A api used to manage vehicle maintenance.
+baseUri: http://localhost:8081/{version}
+version: v1
+securitySchemes:
+  basicAuth:
+    type: Basic Authentication
+
+/vehicles:
+  get:
+    description: Returns all vehicles, optionally filtered by status.
+    queryParameters:
+      status: 
+        type: string
+        enum:
+        - Active
+        - Maintenance
+        - Inactive
+        - Reserved
+        required: false
+    responses:
+      200:
+        body: 
+          application/json:
+            type: !include Datatype/vehicle-list.raml
+            example: !include Examples/get-all-vehicles-examples.json
+/vehicles/{id}:
+  uriParameters:
+    id: string
+  get:
+    description: Returns details of a single vehicle by its id.
+    responses:
+      200:
+        body: 
+          application/json:
+            type: !include Datatype/vehicle.raml
+            example: !include Examples/get-id-vehicles-examples.json
+      404:
+        body:
+          application/json:
+            example: { "message": "Vehicle not found" }
+
+# /vehicles/{status}:
+#   uriParameters:
+#     status: 
+#       type: string
+#       enum:
+#       - Active
+#       - Maintenance
+#       - Inactive
+#       - Reserved
+#   get:
+#     description: Used to retrieve vehicle information.
+#     responses:
+#       200:
+#         body: 
+#           application/json:
+#             type: !include Datatype/vehicle-list.raml
+#             example: !include Examples/get-status-vehicles-examples.json

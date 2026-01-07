@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<sub-flow name="read-filesSub_Flow" doc:id="2fc39baf-12e1-4887-8f2a-6c77b8010345" >
+		<file:read doc:name="Read" doc:id="73d1a4a9-f62f-4b02-a335-1270e9179521" config-ref="Read_File_Config" path="test.txt"/>
+	</sub-flow>
+</mule>
