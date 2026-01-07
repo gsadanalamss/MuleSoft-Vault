@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:jira="http://www.mulesoft.org/schema/mule/jira"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/jira http://www.mulesoft.org/schema/mule/jira/current/mule-jira.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="get-commentsFlow" doc:id="4590eafa-f2cb-4c92-b010-19e4031e0958" >
+		<http:listener doc:name="Listener" doc:id="c47b73ef-59a0-4d22-98ac-bc123d58d5d2" config-ref="HTTP_Listener_config" path="get-comments"/>
+		<jira:get-rest-api3-issue-comment-by-issue-id-or-key doc:name="Get Comments" doc:id="eb3e131b-18b8-47db-8203-740526cc6b9f" config-ref="Jira_Connector_Config" issueIdOrKey="10000"/>
+		<logger level="INFO" doc:name="Logger" doc:id="db81f55d-e634-4193-81e3-ba4d56c35ff0" message="#[payload]"/>
+	</flow>
+</mule>

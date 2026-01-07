@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jira="http://www.mulesoft.org/schema/mule/jira" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/jira http://www.mulesoft.org/schema/mule/jira/current/mule-jira.xsd">
+	<flow name="edit-issueFlow" doc:id="6110d567-ef7f-4aa3-bb24-961d73a0bd89" >
+		<http:listener doc:name="Listener" doc:id="16105abd-c324-4b75-817c-9ad52689187f" config-ref="HTTP_Listener_config" path="edit-issue"/>
+		<jira:update-rest-api3-issue-by-issue-id-or-key doc:name="Edit Issue" doc:id="858bdf97-2d2b-45d4-ab74-c08290beb30c" config-ref="Jira_Connector_Config" issueIdOrKey="10000"/>
+	</flow>
+</mule>
