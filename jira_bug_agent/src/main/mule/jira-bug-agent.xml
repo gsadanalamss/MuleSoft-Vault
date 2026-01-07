@@ -8,11 +8,11 @@ http://www.mulesoft.org/schema/mule/aichain http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/mulesoft-aichain http://www.mulesoft.org/schema/mule/mulesoft-aichain/current/mule-mulesoft-aichain.xsd
 http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd">
 	<flow name="Jira-AI-Summary-Sentiments" doc:id="ecbe99eb-d390-45b0-ab06-802e7c6dc52d" >
-		<jira:on-updated-issue-trigger doc:name="On new and updated issue trigger" doc:id="005a3180-c483-48ad-aaac-04cb45dd1895" config-ref="Jira_Connector_Config1" issueType="bug" startDate="2024-08-23" projectIdOrKey="10000">
+		<jira:on-new-issue-trigger doc:name="On new issue trigger" doc:id="7affd980-1dcd-4b74-a33f-47db3c402b80" config-ref="Jira_Connector_Config1" startDate="2025-01-01" projectIdOrKey="10000" issueType="bug">
 			<scheduling-strategy >
-				<fixed-frequency frequency="1" timeUnit="MINUTES"/>
+				<fixed-frequency frequency="1" timeUnit="MINUTES" />
 			</scheduling-strategy>
-		</jira:on-updated-issue-trigger>
+		</jira:on-new-issue-trigger>
 		<set-variable value="#[payload.key]" doc:name="Jira Key" doc:id="3a312f7e-a1ef-4f2b-9448-4d2f45d2a250" variableName="key"/>
 		<set-variable value="#[payload]" doc:name="Changed Issue" doc:id="2d0967e3-561f-48f9-b4ce-c09ca2bea72c" variableName="payload"/>
 		<os:retrieve doc:name="Retrieve Jira id" doc:id="9865c167-0787-46e5-bad2-67af76d4a069" key="#[vars.key]" objectStore="Object_store">
