@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:jira="http://www.mulesoft.org/schema/mule/jira" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/jira http://www.mulesoft.org/schema/mule/jira/current/mule-jira.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="Jira-AI-Summary-Sentiment" doc:id="d5d80917-8fde-471a-8c93-efa36a72a406" >
+<!-- 		<jira:on-updated-issue-trigger doc:name="On new and updated issue trigger" doc:id="030313d1-9dd7-4b08-bc4f-33e6b2916042" config-ref="Jira_Connector_Config" startDate="2024-08-23" issueType="bug" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="1" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</jira:on-updated-issue-trigger> -->
+		<http:listener doc:name="Listener" doc:id="b77f90cd-08e4-49b1-9bcc-dd4db8cc7668" config-ref="HTTP_Listener_config" path="/mss/jira/ai-agent"/>
+		<logger level="INFO" doc:name="Start Logger" doc:id="c3eba53c-0f18-449a-bedc-e61596f1e869" message='#["The start of test"]'/>
+		<set-variable value="#[payload.key]" doc:name="Jira Key" doc:id="218d216c-551a-4ba8-9b0a-349a67cd77e6" variableName="key" />
+		<set-variable value="#[payload]" doc:name="Changed Issue" doc:id="7ba944f6-f265-4695-8102-b26d87a24ea8" variableName="payload" />
+		<os:retrieve doc:name="Retrieve Jira id" doc:id="445e44b3-fbdf-409e-bb87-a0337b492343" key="#[vars.key]" objectStore="Object_store" >
+			<os:default-value ><![CDATA[not_synched]]></os:default-value>
+		</os:retrieve>
+		<logger level="INFO" doc:name="Logger" doc:id="f46b38b1-a07a-4de9-a701-09589de10b60" message="#[payload]" />
+		<choice doc:name="Choice" doc:id="4c6269fd-630c-4ded-8348-0e2438c5150c" >
+			<when expression='#[payload=="not_synched"]' >
+				<os:store doc:name="Store Jira Id" doc:id="18724ba5-b7ed-42cc-a351-1bdaa30ab8f7" key="#[vars.key]" objectStore="Object_store" >
+					<os:value ><![CDATA[#["synched"]]]></os:value>
+				</os:store>
+				<logger level="INFO" doc:name="Logger" doc:id="48af9b2e-88e0-4843-b011-adfaafa4b078" message="#[payload]" />
+				<jira:get-rest-api3-issue-comment-by-issue-id-or-key doc:name="Get Comments" doc:id="43bc3bf8-c5e1-4d90-a186-40d3c221aefa" config-ref="Jira_Connector_Config" issueIdOrKey="#[vars.key]" />
+				<ee:transform doc:name="extract all comment bodies" doc:id="85fb78a0-3cdb-4531-9e2c-092873edaba1" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	comments: payload.comments..body..content..content..text default [], 
+	description: vars.payload.fields.description.content..text,
+	summary: vars.payload.fields.summary 	
+		
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<ee:transform doc:name="Transform Message" doc:id="296cd5c1-6fee-4732-ae50-4288e853a468" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+write(payload, "application/json")]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<scatter-gather doc:name="Scatter-Gather" doc:id="c5a3b43a-d25b-48e1-8f1e-bd1000bd20a9" >
+					<route >
+						<ms-aichain:agent-define-prompt-template doc:name="Agent define prompt template" doc:id="4fa99b88-fc7d-4033-9bc7-2a542ecf5596" config-ref="MuleSoft_AI_Chain_Config" >
+							<ms-aichain:template ><![CDATA[You are a support representative who is tasked with creating a short summary of a case that happened between a customer and a company support rep.]]></ms-aichain:template>
+							<ms-aichain:instructions ><![CDATA[Follow the instructions precisely, do not add any information not provided. Summarize in 1 sentence, and use clear, concise, and straightforward language using the active voice and strictly avoiding the use of filler words and phrases and redundant language. Guide the next steps as maximum 2 bullet points. Keep the emotion of the summary relaxed.]]></ms-aichain:instructions>
+						</ms-aichain:agent-define-prompt-template>
+					</route>
+					<route >
+						<ms-aichain:sentiment-analyze doc:name="Sentiment analyze" doc:id="b1c2f1d1-4236-417a-a52b-52c4631a9d40" config-ref="MuleSoft_AI_Chain_Config" />
+					</route>
+				</scatter-gather>
+				<ee:transform doc:name="Transform Message1" doc:id="d7ddd681-ba66-418e-aa3e-7eccd7448b7f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+"fields": {
+    "customfield_10038": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": payload."0".payload.response
+               }
+              ]
+            }
+          ]
+        },	   
+    "customfield_10039": payload."1".payload.response
+    }
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="#[payload]" doc:name="AI Agent Summary and Sentiment" doc:id="dd15383f-ca42-4922-a4aa-60de921cf2e1" variableName="airesponse"/>
+				<jira:update-rest-api3-issue-by-issue-id-or-key doc:name="Edit Issue" doc:id="04ce61f6-33d3-4b7e-904f-4312ceb0be78" config-ref="Jira_Connector_Config" issueIdOrKey="#[vars.key]" />
+				<logger level="INFO" doc:name="Result" doc:id="9a23f3de-137c-43ee-ba1c-1365e5ca76b3" message='#[vars.airesponse]'/>
+				<set-payload value="#[vars.airesponse]" doc:name="Set Payload" doc:id="e5f8ba28-a7e5-4461-9477-02370e2e8af1" />
+				<logger level="INFO" doc:name="End Logger" doc:id="e7fe6c98-a22f-46bf-b148-d29edbe4147d" message='#["End of Test"]'/>
+			
+</when>
+			<otherwise >
+				<os:remove doc:name="Remove" doc:id="8caf890d-e348-4973-9f05-56e8ab8f4305" key="#[vars.key]" objectStore="Object_store" />
+				<logger level="INFO" doc:name="Logger" doc:id="b2533fa5-17de-499f-b918-9df5a8e02e6c" message='#["Issue already synched: " ++ vars.key]' />
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

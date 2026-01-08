@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="user-authentication-sapi-test-suite.xml" />
+	<munit:before-suite name="user-authentication-sapi-test-suiteBefore_Suite" doc:id="eff6c41a-0581-48bf-ada9-1bf9610bf656" >
+		<munit-tools:store doc:name="Store" doc:id="90291df9-d00c-4766-9c49-5150b2fd600f" key='#["TestUser1"]'>
+			<munit-tools:value ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+  "userName": "TestUser1",
+  "firstName": "Alice",
+  "lastName": "Wonderland",
+  "password": "Pass#123",
+  "confirmPassword": "Pass#123"
+}]]]></munit-tools:value>
+		</munit-tools:store>
+	</munit:before-suite>
+	<munit:test name="user-authentication-sapi-test-suite-valid-users-register" doc:id="9b276159-73a7-4b4d-ac2d-bb6718d34031" description="Test">
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="f6fa8dec-5951-4e96-81aa-b14a5b187bc5">
+				<munit:payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  "userName": "TestUser",&#10;  "firstName": "Alice",&#10;  "lastName": "Wonderland",&#10;  "password": "Pass#123",&#10;  "confirmPassword": "Pass#123"&#10;}]' mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to user-authentication-sapi-main" doc:id="ea35da47-34a3-4e5d-8671-da89fe89bc5a" name="post:\register:application\json:user-authentication-sapi-config"/>
+		</munit:execution>
+		<munit:validation >
+			<logger level="INFO" doc:name="Logger" doc:id="77f74280-ac2a-4013-a479-8b907a7d7058" message="#[payload]"/>
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="a87e5220-e437-404a-abb1-015c9a5cec81" actual="#[payload.userName]" expected='#["TestUser"]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="user-authentication-sapi-test-suite-register-invalid-password" doc:id="4d2c22ac-00f5-4e16-8282-535046e28078" >
+		<munit:execution>
+			<munit:set-event doc:name="Set Event" doc:id="ab0b3bd4-6d19-490a-bf9f-da01a84398d8">
+				<munit:payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  "userName": "TestUser",&#10;  "firstName": "Alice",&#10;  "lastName": "Wonderland",&#10;  "password": "Pass#123",&#10;  "confirmPassword": "Pass#1234"&#10;}]' mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to user-authentication-sapi-main" doc:id="6814c83c-dd46-4df4-9ebc-b4255dce53dc" name="post:\register:application\json:user-authentication-sapi-config" />
+		</munit:execution>
+		<munit:validation >
+			<logger level="INFO" doc:name="Logger" doc:id="3c2ae1f1-9b4c-4478-865d-1582b8357d72" message="#[payload]" />
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="c1a75b03-eeaa-4cd1-90db-b1926d4d697b" actual="#[payload.message]" expected='#["The password and confirm password should match"]' />
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

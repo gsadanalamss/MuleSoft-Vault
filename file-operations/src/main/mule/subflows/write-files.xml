@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="write-filesSub_Flow" doc:id="7a817dcf-64dc-4b35-a26f-8a30cc5459ea" >
+		<ee:transform doc:name="Transform Message" doc:id="d705661f-18c6-4dc5-b3c6-0b2fffd57bd5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Write" doc:id="21f656a2-56bd-4444-9c8b-c8f2f02942a5" path='#["D:\File Operations\Processed\\" ++ payload.name]' mode="APPEND" config-ref="Write_File_Config">
+			<file:content ><![CDATA[#[payload.body]]]></file:content>
+		</file:write>
+	</sub-flow>
+</mule>

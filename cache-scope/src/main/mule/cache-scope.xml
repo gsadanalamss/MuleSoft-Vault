@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<ee:object-store-caching-strategy name="Caching_Strategy" doc:name="Caching Strategy" doc:id="ab813e7b-4079-4158-8d57-e75da5ae64d4" keyGenerationExpression='#[attributes.headers."productid"]' objectStore="cache_Object_store"/>
+	<flow name="no-cache-scopeFlow" doc:id="cde88849-fd04-482e-b96b-70e1c43cba76" >
+		<http:listener doc:name="Listener" doc:id="41431294-55d6-48ef-ab99-c237c5293b06" config-ref="HTTP_Listener_config" path="no-cache-scope"/>
+		<logger level="INFO" doc:name="Logger" doc:id="345fc142-39a4-4a31-bfa5-ecfc04bfb03d" message="#[payload]" />
+		<ee:transform doc:name="Transform Message" doc:id="b7b767a4-12ec-4404-bc70-427a2a8ffe9f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::Runtime
+output application/json
+---
+{
+    "product id":  attributes.headers."productid",
+    "product desc": "product description"  
+} wait 5000
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="901fd0a3-d0d3-4ba2-b241-b8478baa9044" message="#[payload]"/>
+	</flow>
+	<flow name="cache-scopeFlow" doc:id="e5ebb63b-b690-4903-9077-f3695d409511" >
+		<http:listener doc:name="Listener" doc:id="a5190c3d-8806-4ea0-8250-d018f3bd84d7" config-ref="HTTP_Listener_config" path="cache-scope" />
+		<ee:cache doc:name="Cache" doc:id="74121aec-0e75-4fdf-bcf3-1945e6b4ac99" cachingStrategy-ref="Caching_Strategy">
+			<ee:transform doc:name="Transform Message" doc:id="2477f83c-d5ab-4724-8092-6c7b68c02cd4">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::Runtime
+output application/json
+---
+{
+    "product id":  attributes.headers."productid",
+    "product desc": "product description"  
+} wait 5000
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<logger level="INFO" doc:name="Logger" doc:id="9787cce8-56b7-4685-a533-806b86803353" message="#[payload]" />
+		</ee:cache>
+	</flow>
+</mule>
