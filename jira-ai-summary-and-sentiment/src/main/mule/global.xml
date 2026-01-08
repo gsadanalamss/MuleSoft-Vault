@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:jira="http://www.mulesoft.org/schema/mule/jira"
+	xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd
+http://www.mulesoft.org/schema/mule/jira http://www.mulesoft.org/schema/mule/jira/current/mule-jira.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<ms-aichain:config name="MuleSoft_AI_Chain_Config" llmType="OPENAI" configType="Configuration Json" modelName="gpt-4o-mini" doc:name="MuleSoft AI Chain Config" doc:id="28b6c89a-406b-4be9-a6cc-7c9ef55e2d80" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]' />
+	<configuration-properties doc:name="Configuration properties" doc:id="a075d20a-a3af-4607-8566-f48ed94fc5cd" file="connections.yaml" />
+	<jira:config name="Jira_Connector_Config" doc:name="Jira Connector Config" doc:id="6ba9e2c3-66cd-42ab-bf6d-3876673a1abb" >
+		<jira:basic-auth-connection username="${jira.user}" password="${jira.api-token}" baseUri="${jira.url}" />
+	</jira:config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="28459028-0861-4d4c-a424-92eee1ec7105" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="65245fc5-0b8d-4581-a48e-0568f6a64896" />
+</mule>
