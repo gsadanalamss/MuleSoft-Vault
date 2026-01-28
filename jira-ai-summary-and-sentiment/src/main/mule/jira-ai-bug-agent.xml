@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:jira="http://www.mulesoft.org/schema/mule/jira" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/jira http://www.mulesoft.org/schema/mule/jira/current/mule-jira.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="Jira-AI-Summary-Sentiments" doc:id="3b968de6-fa4e-4593-bc96-11bbcaf5f22f" >
+		<http:listener doc:name="Listener" doc:id="bfd5e7db-472f-4a35-9065-3fbd14578b2d" config-ref="HTTP_Listener_config" path="jira-agent"/>
+		<set-variable value="#[payload.key]" doc:name="Jira Key" doc:id="ef492795-c183-43ee-88b0-c311fc6e9ad0" variableName="key" />
+		<set-variable value="#[payload]" doc:name="Changed Issue" doc:id="42e43cd8-0441-4b71-9441-31cb01d298ff" variableName="payload" />
+		<os:retrieve doc:name="Retrieve Jira id" doc:id="30cd7765-43a6-4169-8b23-1d582136dffa" key="#[vars.key]" objectStore="Object_store" >
+			<os:default-value ><![CDATA[not_synched]]></os:default-value>
+		</os:retrieve>
+		<logger level="INFO" doc:name="Logger" doc:id="0df3b8f1-50be-424c-ae62-3d99a9108f60" message="#[payload]" />
+		<choice doc:name="Choice" doc:id="cc27f3d8-8e91-47c4-9e1a-752066341c0e" >
+			<when expression='#[payload=="not_synched"]' >
+				<os:store doc:name="Store Jira Id" doc:id="bc9c772c-2dcb-4190-ace0-4f7491cc0e0e" key="#[vars.key]" objectStore="Object_store" >
+					<os:value ><![CDATA[#["synched"]]]></os:value>
+				</os:store>
+				<logger level="INFO" doc:name="Logger" doc:id="92dcb508-34a6-4fe2-ab22-ef883dcecff3" message="#[payload]" />
+				<jira:get-rest-api3-issue-comment-by-issue-id-or-key doc:name="Get Comments" doc:id="01f623cc-442e-4305-939e-524f65bb6b2d" config-ref="Jira_Connector_Config" issueIdOrKey="#[vars.key]" />
+				<ee:transform doc:name="extract all comment bodies" doc:id="508fae7a-b635-4345-8c83-ab580ad140c4" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	comments: payload.comments..body..content..content..text default [], 
+	description: vars.payload.fields.description.content..text,
+	summary: vars.payload.fields.summary 	
+		
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<ee:transform doc:name="Serialize Payload as JSON" doc:id="1a130234-52a8-457c-86b7-489f3588c2dd" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+write(payload, "application/json")]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<scatter-gather doc:name="Scatter-Gather" doc:id="2d87deb7-6f98-41f1-986c-a93b5fb29ced" >
+					<route >
+						<ms-aichain:agent-define-prompt-template doc:name="Agent define prompt template" doc:id="9726c7c6-01a5-4130-9195-09a97d5f58d8" config-ref="MuleSoft_AI_Chain_Config" >
+							<ms-aichain:template ><![CDATA[You are a support representative who is tasked with creating a short summary of a case that happened between a customer and a company support rep.]]></ms-aichain:template>
+							<ms-aichain:instructions ><![CDATA[Follow the instructions precisely, do not add any information not provided. Summarize in 1 sentence, and use clear, concise, and straightforward language using the active voice and strictly avoiding the use of filler words and phrases and redundant language. Guide the next steps as maximum 2 bullet points. Keep the emotion of the summary relaxed.]]></ms-aichain:instructions>
+						</ms-aichain:agent-define-prompt-template>
+					</route>
+					<route >
+						<ms-aichain:sentiment-analyze doc:name="Sentiment analyze" doc:id="da27e90e-bc62-438e-8c08-ca68c4618e72" config-ref="MuleSoft_AI_Chain_Config" />
+					</route>
+				</scatter-gather>
+				<ee:transform doc:name="Transform Message1" doc:id="0002b05b-1c67-4b7b-abeb-981a1ec65d47" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+"fields": {
+    "customfield_10038": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": payload."0".payload.response
+               }
+              ]
+            }
+          ]
+        },	   
+    "customfield_10039": payload."1".payload.response
+    }
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<jira:update-rest-api3-issue-by-issue-id-or-key doc:name="Edit Issue" doc:id="6eb39668-396d-4307-8efc-45fb2878b76b" config-ref="Jira_Connector_Config" issueIdOrKey="#[vars.key]" />
+			</when>
+			<otherwise >
+				<os:remove doc:name="Remove" doc:id="54ac50a3-5d62-4ba7-841f-f85193d16f63" key="#[vars.key]" objectStore="Object_store" />
+				<logger level="INFO" doc:name="Logger" doc:id="5f7a1eaa-f3f7-486e-9dd6-83a7482485b4" message='#["Issue already synched: " ++ vars.key]' />
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

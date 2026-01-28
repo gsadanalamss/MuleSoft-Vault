@@ -1,0 +1,11 @@
+api:
+  instanceid: "api-manager-instance-id"
+
+tls:
+  alias: "keystore-alias"
+  keyPassword: "keystore-key-password"
+  password: "keystore-password"
+  path: "keystore-file-name"
+
+http:
+  port: "https-listener-port"

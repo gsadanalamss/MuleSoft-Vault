@@ -1,0 +1,67 @@
+{
+	"info": {
+		"_postman_id": "0933377d-7542-42b2-849f-d913e4eebd8a",
+		"name": "Loop Operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49053178",
+		"_collection_link": "https://fun666834-1540037.postman.co/workspace/MuleSoft-AI-Chain~347eed6f-00cf-4dae-a7a8-224f64c4a165/collection/49053178-0933377d-7542-42b2-849f-d913e4eebd8a?action=share&source=collection_link&creator=49053178"
+	},
+	"item": [
+		{
+			"name": "For each",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Employees\": [\r\n        {\r\n            \"userId\": \"rirani\",\r\n            \"jobTitleName\": \"Developer\",\r\n            \"firstName\": \"Romin\",\r\n            \"lastName\": \"Irani\",\r\n            \"preferredFullName\": \"Romin Irani\",\r\n            \"employeeCode\": \"E1\",\r\n            \"region\": \"CA\",\r\n            \"phoneNumber\": \"408-1234567\",\r\n            \"emailAddress\": \"romin.k.irani@gmail.com\"\r\n        },\r\n        {\r\n            \"userId\": \"nirani\",\r\n            \"jobTitleName\": \"Developer\",\r\n            \"firstName\": \"Neil\",\r\n            \"lastName\": \"Irani\",\r\n            \"preferredFullName\": \"Neil Irani\",\r\n            \"employeeCode\": \"E2\",\r\n            \"region\": \"CA\",\r\n            \"phoneNumber\": \"408-1111111\",\r\n            \"emailAddress\": \"neilrirani@gmail.com\"\r\n        },\r\n        {\r\n            \"userId\": \"thanks\",\r\n            \"jobTitleName\": \"Program Directory\",\r\n            \"firstName\": \"Tom\",\r\n            \"lastName\": \"Hanks\",\r\n            \"preferredFullName\": \"Tom Hanks\",\r\n            \"employeeCode\": \"E3\",\r\n            \"region\": \"CA\",\r\n            \"phoneNumber\": \"408-2222222\",\r\n            \"emailAddress\": \"tomhanks@gmail.com\"\r\n        }\r\n    ]\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/for-each",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"for-each"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Async Scope",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"id\": \"V011\",\r\n  \"make\": \"Honda\",\r\n  \"model\": \"Civic\",\r\n  \"year\": 2023,\r\n  \"status\": \"Active\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/async-scope",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"async-scope"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

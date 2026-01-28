@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="306835c4-7e29-43b2-a538-5fd8ff143548" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<file:config name="InputFile_Config" doc:name="File Config" doc:id="71677f5d-2b2b-443f-93ce-c9082578a88c" >
+		<file:connection workingDir="D:\File Operations\Input" />
+	</file:config>
+	<file:config name="OutputFile_Config" doc:name="File Confi" doc:id="877a4a7c-5005-4c96-8858-7647a159176f" >
+		<file:connection workingDir="D:\File Operations\Output" />
+	</file:config>
+</mule>

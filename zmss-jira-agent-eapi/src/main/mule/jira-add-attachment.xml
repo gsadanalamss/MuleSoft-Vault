@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jira="http://www.mulesoft.org/schema/mule/jira" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/jira http://www.mulesoft.org/schema/mule/jira/current/mule-jira.xsd">
+	<flow name="AddAttachmentstoJira" doc:id="7b466dbe-9670-4758-b485-f69e967c7c5b" >
+		<http:listener doc:name="Listener" doc:id="458d5aa7-24de-413f-a1e9-a87ddc81f26a" path="add-attach" config-ref="HTTP_Listener_config"/>
+		<jira:create-rest-api3-issue-attachments-by-issue-id-or-key doc:name="Add Attachment" doc:id="227df78b-f9df-4041-bf4c-60c464ac1a9c" issueIdOrKey="SCRUM-1" fileName="/mss-jira-agent-eapi/src/main/resources/Test" config-ref="Jira_Connector_Config"/>
+		<logger level="INFO" doc:name="Logger" doc:id="a9b7bddb-dcde-47d3-bb5f-0783a3a1befe" />
+	</flow>
+</mule>
