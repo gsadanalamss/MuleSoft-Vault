@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!-- HTTP Listener Configuration -->
+    <http:listener-config name="HTTP_Listener_config">
+        <http:listener-connection host="0.0.0.0" port="8086" />
+    </http:listener-config>
+
+    <!-- Object Store for Order Status (In-Memory for local testing) -->
+    <object-store name="orderStatusStore" />
+
+    <!-- Flow: PUT /{orderId} - Update Order Status -->
+    <flow name="update-order-status-flow">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/v1/status/{orderId}" allowedMethods="PUT" />
+        
+        <set-variable variableName="orderId" value="#[attributes.uriParams.orderId]" />
+        
+        <!-- Store status in Object Store -->
+        <object-store:store key="#[vars.orderId]" objectStore="orderStatusStore">
+            <object-store:value>#[payload]</object-store:value>
+        </object-store:store>
+        
+        <!-- Return updated status -->
+        <set-payload value="{
+            &quot;orderId&quot;: &quot;#[vars.orderId]&quot;,
+            &quot;status&quot;: &quot;#[payload.status]&quot;,
+            &quot;lastUpdated&quot;: &quot;#[now()]&quot;
+        }" />
+        
+        <http:response statusCode="200" />
+    </flow>
+
+    <!-- Flow: GET /{orderId} - Get Order Status -->
+    <flow name="get-order-status-flow">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/v1/status/{orderId}" allowedMethods="GET" />
+        
+        <set-variable variableName="orderId" value="#[attributes.uriParams.orderId]" />
+        
+        <!-- Retrieve status from Object Store -->
+        <try>
+            <object-store:retrieve key="#[vars.orderId]" objectStore="orderStatusStore" />
+            
+            <set-payload value="{
+                &quot;orderId&quot;: &quot;#[vars.orderId]&quot;,
+                &quot;status&quot;: &quot;#[payload.status]&quot;,
+                &quot;lastUpdated&quot;: &quot;#[now()]&quot;
+            }" />
+            
+            <http:response statusCode="200" />
+            
+            <error-handler>
+                <on-error-continue>
+                    <set-payload value='{"error": "Order not found", "orderId": "#[vars.orderId]"}' />
+                    <http:response statusCode="404" />
+                </on-error-continue>
+            </error-handler>
+        </try>
+    </flow>
+
+</mule>

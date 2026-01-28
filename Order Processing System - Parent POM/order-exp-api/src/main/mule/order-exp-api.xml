@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!-- HTTP Listener Configuration -->
+    <http:listener-config name="HTTP_Listener_config">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+
+    <!-- HTTP Request Configuration for Process API -->
+    <http:request-config name="HTTP_Request_config_proc">
+        <http:request-connection host="localhost" port="8082" />
+    </http:request-config>
+
+    <!-- HTTP Request Configuration for Status Store -->
+    <http:request-config name="HTTP_Request_config_store">
+        <http:request-connection host="localhost" port="8086" />
+    </http:request-config>
+
+    <!-- Flow: POST /orders - Create Order -->
+    <flow name="post-orders-flow">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/v1/orders" allowedMethods="POST" />
+        
+        <!-- Generate Order ID -->
+        <set-variable variableName="orderId" value="#[java.util.UUID.randomUUID().toString()]" />
+        
+        <!-- Extract Correlation ID from header or generate new one -->
+        <set-variable variableName="correlationId" 
+                      value="#[attributes.headers['X-Correlation-ID'] default java.util.UUID.randomUUID().toString()]" />
+        
+        <!-- Initialize status to RECEIVED -->
+        <set-payload value="{
+            &quot;orderId&quot;: &quot;#[vars.orderId]&quot;,
+            &quot;status&quot;: &quot;RECEIVED&quot;,
+            &quot;timestamp&quot;: &quot;#[now()]&quot;
+        }" />
+        
+        <!-- Store initial status in Object Store -->
+        <http:request method="PUT" config-ref="HTTP_Request_config_store" 
+                      path="/api/v1/status/#[vars.orderId]">
+            <http:body>#[payload]</http:body>
+            <http:headers>#[{'X-Correlation-ID': vars.correlationId}]</http:headers>
+        </http:request>
+        
+        <!-- Invoke Process API asynchronously -->
+        <async>
+            <http:request method="POST" config-ref="HTTP_Request_config_proc" 
+                          path="/api/v1/process">
+                <http:body>#[{
+                    'orderId': vars.orderId,
+                    'items': payload.items
+                }]</http:body>
+                <http:headers>#[{'X-Correlation-ID': vars.correlationId}]</http:headers>
+            </http:request>
+        </async>
+        
+        <!-- Return 202 Accepted with Order ID -->
+        <set-payload value="{
+            &quot;orderId&quot;: &quot;#[vars.orderId]&quot;,
+            &quot;status&quot;: &quot;RECEIVED&quot;,
+            &quot;createdAt&quot;: &quot;#[now()]&quot;
+        }" />
+        
+        <http:response statusCode="202" />
+    </flow>
+
+    <!-- Flow: GET /orders/{orderId}/status - Get Order Status -->
+    <flow name="get-status-flow">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/v1/orders/{orderId}/status" allowedMethods="GET" />
+        
+        <!-- Extract Correlation ID -->
+        <set-variable variableName="correlationId" 
+                      value="#[attributes.headers['X-Correlation-ID'] default java.util.UUID.randomUUID().toString()]" />
+        
+        <!-- Retrieve status from Status Store -->
+        <http:request method="GET" config-ref="HTTP_Request_config_store" 
+                      path="/api/v1/status/#[attributes.uriParams.orderId]">
+            <http:headers>#[{'X-Correlation-ID': vars.correlationId}]</http:headers>
+        </http:request>
+        
+        <http:response statusCode="200" />
+    </flow>
+
+</mule>

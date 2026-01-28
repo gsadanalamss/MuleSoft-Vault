@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!-- HTTP Listener Configuration -->
+    <http:listener-config name="HTTP_Listener_config">
+        <http:listener-connection host="0.0.0.0" port="8083" />
+    </http:listener-config>
+
+    <!-- Flow: POST /inventory/check - Mock Inventory Check -->
+    <flow name="inventory-check-flow">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/v1/inventory/check" allowedMethods="POST" />
+        
+        <!-- Simulate random latency (0.5-2s) -->
+        <set-variable variableName="randomDelay" value="#[(java.lang.Math.random() * 1500) + 500]" />
+        
+        <!-- Simulate 70% success, 30% failure -->
+        <set-variable variableName="randomValue" value="#[java.lang.Math.random()]" />
+        
+        <choice>
+            <when expression="#[vars.randomValue &lt; 0.7]">
+                <!-- Success response (70%) -->
+                <set-payload value='{"available": true, "message": "All items available in inventory"}' />
+                <http:response statusCode="200" />
+            </when>
+            <otherwise>
+                <!-- Failure response (30%) -->
+                <set-payload value='{"error": "Inventory check failed", "code": "INVENTORY_ERROR"}' />
+                <http:response statusCode="500" />
+            </otherwise>
+        </choice>
+    </flow>
+
+</mule>

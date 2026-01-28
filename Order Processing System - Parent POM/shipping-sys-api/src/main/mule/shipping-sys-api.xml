@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!-- HTTP Listener Configuration -->
+    <http:listener-config name="HTTP_Listener_config">
+        <http:listener-connection host="0.0.0.0" port="8085" />
+    </http:listener-config>
+
+    <!-- Flow: POST /shipping/create - Mock Shipment Creation -->
+    <flow name="shipping-create-flow">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/v1/shipping/create" allowedMethods="POST" />
+        
+        <!-- Simulate random latency (1-4s) -->
+        <set-variable variableName="randomDelay" value="#[(java.lang.Math.random() * 3000) + 1000]" />
+        
+        <!-- Simulate random failures -->
+        <set-variable variableName="randomValue" value="#[java.lang.Math.random()]" />
+        
+        <choice>
+            <when expression="#[vars.randomValue &lt; 0.8]">
+                <!-- Success response (80%) -->
+                <set-payload value='{"shippingId": "#[java.util.UUID.randomUUID().toString()]", "status": "CREATED", "estimatedDelivery": "#[now() + (5 * 24 * 60 * 60 * 1000)]"}' />
+                <http:response statusCode="202" />
+            </when>
+            <otherwise>
+                <!-- Failure response (20%) -->
+                <set-payload value='{"error": "Shipping creation failed", "code": "SHIPPING_ERROR"}' />
+                <http:response statusCode="500" />
+            </otherwise>
+        </choice>
+    </flow>
+
+</mule>

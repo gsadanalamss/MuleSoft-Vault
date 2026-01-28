@@ -1,0 +1,73 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+.flattened-pom.xml
+
+# Mule
+.mule/
+.mulerc
+.classpath
+.project
+.settings/
+bin/
+.DS_Store
+*.log
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.sublime-project
+.sublime-workspace
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Anypoint Studio
+.metadata/
+RemoteSystemsTempFiles/
+.classpath
+.project
+.settings/
+
+# Node (if using Node dependencies)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build
+dist/
+build/
+
+# Runtime
+.env
+.env.local
+.env.*.local
+
+# Test reports
+test-results/
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~

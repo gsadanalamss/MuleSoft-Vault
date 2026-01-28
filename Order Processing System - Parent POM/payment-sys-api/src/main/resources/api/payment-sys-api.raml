@@ -1,0 +1,35 @@
+#%RAML 1.0
+title: Payment System API
+version: 1.0.0
+baseUri: http://localhost:8084/api/v1/payment
+protocols: [HTTP]
+mediaType: application/json
+
+uses:
+  common: ../../../raml-library/src/main/resources/raml/types/common-types.raml
+  traits: ../../../raml-library/src/main/resources/raml/traits/common-traits.raml
+
+/charge:
+  post:
+    displayName: Charge Payment
+    description: Process payment charge (Mock - 60% success, 40% failure, occasional timeout)
+    is: [traits.correlationIdHeader, traits.errorResponses]
+    body:
+      application/json:
+        type: common.PaymentChargeRequest
+    responses:
+      200:
+        description: Payment processed successfully
+        body:
+          application/json:
+            type: common.PaymentChargeResponse
+      402:
+        description: Payment declined
+        body:
+          application/json:
+            type: common.ErrorResponse
+      500:
+        description: Payment processing error
+        body:
+          application/json:
+            type: common.ErrorResponse

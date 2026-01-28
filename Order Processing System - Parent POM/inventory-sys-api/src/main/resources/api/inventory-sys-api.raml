@@ -1,0 +1,30 @@
+#%RAML 1.0
+title: Inventory System API
+version: 1.0.0
+baseUri: http://localhost:8083/api/v1/inventory
+protocols: [HTTP]
+mediaType: application/json
+
+uses:
+  common: ../../../raml-library/src/main/resources/raml/types/common-types.raml
+  traits: ../../../raml-library/src/main/resources/raml/traits/common-traits.raml
+
+/check:
+  post:
+    displayName: Check Inventory
+    description: Check availability of items (Mock - 70% success, 30% failure, 0.5-2s latency)
+    is: [traits.correlationIdHeader, traits.errorResponses]
+    body:
+      application/json:
+        type: common.InventoryCheckRequest
+    responses:
+      200:
+        description: Inventory check completed
+        body:
+          application/json:
+            type: common.InventoryCheckResponse
+      500:
+        description: Inventory check failed
+        body:
+          application/json:
+            type: common.ErrorResponse

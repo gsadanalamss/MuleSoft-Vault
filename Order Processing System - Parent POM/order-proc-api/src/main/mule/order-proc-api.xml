@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!-- HTTP Listener Configuration -->
+    <http:listener-config name="HTTP_Listener_config">
+        <http:listener-connection host="0.0.0.0" port="8082" />
+    </http:listener-config>
+
+    <!-- HTTP Request Configurations for System APIs -->
+    <http:request-config name="HTTP_Request_config_inventory">
+        <http:request-connection host="localhost" port="8083" />
+    </http:request-config>
+
+    <http:request-config name="HTTP_Request_config_payment">
+        <http:request-connection host="localhost" port="8084" />
+    </http:request-config>
+
+    <http:request-config name="HTTP_Request_config_shipping">
+        <http:request-connection host="localhost" port="8085" />
+    </http:request-config>
+
+    <http:request-config name="HTTP_Request_config_store">
+        <http:request-connection host="localhost" port="8086" />
+    </http:request-config>
+
+    <!-- Flow: POST /process - Main Orchestration Flow -->
+    <flow name="process-order-flow">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/v1/process" allowedMethods="POST" />
+        
+        <!-- Extract variables -->
+        <set-variable variableName="orderId" value="#[payload.orderId]" />
+        <set-variable variableName="items" value="#[payload.items]" />
+        <set-variable variableName="correlationId" 
+                      value="#[attributes.headers['X-Correlation-ID'] default java.util.UUID.randomUUID().toString()]" />
+        
+        <!-- Update status: INVENTORY_CHECK_STARTED -->
+        <http:request method="PUT" config-ref="HTTP_Request_config_store" 
+                      path="/api/v1/status/#[vars.orderId]">
+            <http:body>{"status": "INVENTORY_CHECK_STARTED", "timestamp": "#[now()]"}</http:body>
+            <http:headers>#[{'X-Correlation-ID': vars.correlationId}]</http:headers>
+        </http:request>
+        
+        <!-- Inventory Check with Retry (3 attempts, 3s timeout) -->
+        <try>
+            <http:request method="POST" config-ref="HTTP_Request_config_inventory" 
+                          path="/api/v1/inventory/check" sendCorrelationId="ALWAYS">
+                <http:body>{"orderId": "#[vars.orderId]", "items": #[vars.items]}</http:body>
+                <http:headers>#[{'X-Correlation-ID': vars.correlationId}]</http:headers>
+                <http:response-timeout>3000</http:response-timeout>
+            </http:request>
+            
+            <set-variable variableName="inventoryResponse" value="#[payload]" />
+            
+            <error-handler>
+                <on-error-retry attempts="3" delay="1000">
+                    <logger message="Retrying inventory check for order #[vars.orderId]" />
+                </on-error-retry>
+                <on-error-continue>
+                    <logger message="Inventory check failed for order #[vars.orderId]" />
+                    <set-variable variableName="inventoryFailed" value="true" />
+                </on-error-continue>
+            </error-handler>
+        </try>
+        
+        <!-- Choice: Check Inventory Result -->
+        <choice>
+            <when expression="#[vars.inventoryFailed == true or vars.inventoryResponse.available == false]">
+                <!-- Update status: INVENTORY_FAILED -->
+                <http:request method="PUT" config-ref="HTTP_Request_config_store" 
+                              path="/api/v1/status/#[vars.orderId]">
+                    <http:body>{"status": "INVENTORY_FAILED", "timestamp": "#[now()]"}</http:body>
+                    <http:headers>#[{'X-Correlation-ID': vars.correlationId}]</http:headers>
+                </http:request>
+                <set-payload value='{"error": "Inventory check failed"}' />
+                <http:response statusCode="400" />
+            </when>
+            <otherwise>
+                <!-- Update status: INVENTORY_CONFIRMED -->
+                <http:request method="PUT" config-ref="HTTP_Request_config_store" 
+                              path="/api/v1/status/#[vars.orderId]">
+                    <http:body>{"status": "INVENTORY_CONFIRMED", "timestamp": "#[now()]"}</http:body>
+                    <http:headers>#[{'X-Correlation-ID': vars.correlationId}]</http:headers>
+                </http:request>
+                
+                <!-- Payment Processing with Retry (2 attempts, 5s timeout) -->
+                <try>
+                    <http:request method="POST" config-ref="HTTP_Request_config_payment" 
+                                  path="/api/v1/payment/charge" sendCorrelationId="ALWAYS">
+                        <http:body>{"orderId": "#[vars.orderId]", "amount": 100.00, "currency": "USD"}</http:body>
+                        <http:headers>#[{'X-Correlation-ID': vars.correlationId}]</http:headers>
+                        <http:response-timeout>5000</http:response-timeout>
+                    </http:request>
+                    
+                    <set-variable variableName="paymentResponse" value="#[payload]" />
+                    
+                    <error-handler>
+                        <on-error-retry attempts="2" delay="2000">
+                            <logger message="Retrying payment for order #[vars.orderId]" />
+                        </on-error-retry>
+                        <on-error-continue>
+                            <logger message="Payment failed for order #[vars.orderId]" />
+                            <set-variable variableName="paymentFailed" value="true" />
+                        </on-error-continue>
+                    </error-handler>
+                </try>
+                
+                <!-- Choice: Check Payment Result -->
+                <choice>
+                    <when expression="#[vars.paymentFailed == true or vars.paymentResponse.status != 'SUCCESS']">
+                        <!-- Update status: PAYMENT_FAILED -->
+                        <http:request method="PUT" config-ref="HTTP_Request_config_store" 
+                                      path="/api/v1/status/#[vars.orderId]">
+                            <http:body>{"status": "PAYMENT_FAILED", "timestamp": "#[now()]"}</http:body>
+                            <http:headers>#[{'X-Correlation-ID': vars.correlationId}]</http:headers>
+                        </http:request>
+                        <set-payload value='{"error": "Payment processing failed"}' />
+                        <http:response statusCode="400" />
+                    </when>
+                    <otherwise>
+                        <!-- Update status: PAYMENT_COMPLETED -->
+                        <http:request method="PUT" config-ref="HTTP_Request_config_store" 
+                                      path="/api/v1/status/#[vars.orderId]">
+                            <http:body>{"status": "PAYMENT_COMPLETED", "timestamp": "#[now()]"}</http:body>
+                            <http:headers>#[{'X-Correlation-ID': vars.correlationId}]</http:headers>
+                        </http:request>
+                        
+                        <!-- Update status: SHIPPING_REQUESTED -->
+                        <http:request method="PUT" config-ref="HTTP_Request_config_store" 
+                                      path="/api/v1/status/#[vars.orderId]">
+                            <http:body>{"status": "SHIPPING_REQUESTED", "timestamp": "#[now()]"}</http:body>
+                            <http:headers>#[{'X-Correlation-ID': vars.correlationId}]</http:headers>
+                        </http:request>
+                        
+                        <!-- Async Shipping with Retry (5 attempts, 10s timeout) -->
+                        <async>
+                            <try>
+                                <http:request method="POST" config-ref="HTTP_Request_config_shipping" 
+                                              path="/api/v1/shipping/create" sendCorrelationId="ALWAYS">
+                                    <http:body>{"orderId": "#[vars.orderId]", "shippingAddress": "123 Main St", "items": #[vars.items]}</http:body>
+                                    <http:headers>#[{'X-Correlation-ID': vars.correlationId}]</http:headers>
+                                    <http:response-timeout>10000</http:response-timeout>
+                                </http:request>
+                                
+                                <!-- Update status: SHIPPED -->
+                                <http:request method="PUT" config-ref="HTTP_Request_config_store" 
+                                              path="/api/v1/status/#[vars.orderId]">
+                                    <http:body>{"status": "SHIPPED", "timestamp": "#[now()]"}</http:body>
+                                    <http:headers>#[{'X-Correlation-ID': vars.correlationId}]</http:headers>
+                                </http:request>
+                                
+                                <error-handler>
+                                    <on-error-retry attempts="5" delay="2000">
+                                        <logger message="Retrying shipping for order #[vars.orderId]" />
+                                    </on-error-retry>
+                                    <on-error-continue>
+                                        <logger message="Shipping failed for order #[vars.orderId]" />
+                                        <!-- Update status: SHIPPING_FAILED -->
+                                        <http:request method="PUT" config-ref="HTTP_Request_config_store" 
+                                                      path="/api/v1/status/#[vars.orderId]">
+                                            <http:body>{"status": "SHIPPING_FAILED", "timestamp": "#[now()]"}</http:body>
+                                            <http:headers>#[{'X-Correlation-ID': vars.correlationId}]</http:headers>
+                                        </http:request>
+                                    </on-error-continue>
+                                </error-handler>
+                            </try>
+                        </async>
+                        
+                        <!-- Return 202 Accepted -->
+                        <set-payload value='{"message": "Order processing started"}' />
+                        <http:response statusCode="202" />
+                    </otherwise>
+                </choice>
+            </otherwise>
+        </choice>
+    </flow>
+
+</mule>

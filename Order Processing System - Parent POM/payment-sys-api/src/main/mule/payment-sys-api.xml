@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!-- HTTP Listener Configuration -->
+    <http:listener-config name="HTTP_Listener_config">
+        <http:listener-connection host="0.0.0.0" port="8084" />
+    </http:listener-config>
+
+    <!-- Flow: POST /payment/charge - Mock Payment Processing -->
+    <flow name="payment-charge-flow">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/v1/payment/charge" allowedMethods="POST" />
+        
+        <!-- Simulate 60% success, 40% failure -->
+        <set-variable variableName="randomValue" value="#[java.lang.Math.random()]" />
+        
+        <choice>
+            <when expression="#[vars.randomValue &lt; 0.6]">
+                <!-- Success response (60%) -->
+                <set-payload value='{"transactionId": "#[java.util.UUID.randomUUID().toString()]", "status": "SUCCESS", "timestamp": "#[now()]"}' />
+                <http:response statusCode="200" />
+            </when>
+            <otherwise>
+                <!-- Failure response (40%) -->
+                <set-payload value='{"error": "Payment declined", "code": "PAYMENT_DECLINED"}' />
+                <http:response statusCode="402" />
+            </otherwise>
+        </choice>
+    </flow>
+
+</mule>

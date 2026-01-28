@@ -1,0 +1,35 @@
+#%RAML 1.0
+title: Shipping System API
+version: 1.0.0
+baseUri: http://localhost:8085/api/v1/shipping
+protocols: [HTTP]
+mediaType: application/json
+
+uses:
+  common: ../../../raml-library/src/main/resources/raml/types/common-types.raml
+  traits: ../../../raml-library/src/main/resources/raml/traits/common-traits.raml
+
+/create:
+  post:
+    displayName: Create Shipment
+    description: Create a shipment (Mock - async response, 1-4s latency, random failures)
+    is: [traits.correlationIdHeader, traits.asyncResponse, traits.errorResponses]
+    body:
+      application/json:
+        type: common.ShippingCreateRequest
+    responses:
+      202:
+        description: Shipment creation initiated
+        body:
+          application/json:
+            type: common.ShippingCreateResponse
+      400:
+        description: Invalid shipment request
+        body:
+          application/json:
+            type: common.ErrorResponse
+      500:
+        description: Shipment creation error
+        body:
+          application/json:
+            type: common.ErrorResponse

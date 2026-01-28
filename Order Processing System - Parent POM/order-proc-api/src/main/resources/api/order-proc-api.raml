@@ -1,0 +1,40 @@
+#%RAML 1.0
+title: Order Process API
+version: 1.0.0
+baseUri: http://localhost:8082/api/v1
+protocols: [HTTP]
+mediaType: application/json
+
+uses:
+  common: ../../../raml-library/src/main/resources/raml/types/common-types.raml
+  traits: ../../../raml-library/src/main/resources/raml/traits/common-traits.raml
+
+/process:
+  post:
+    displayName: Process Order
+    description: Internal API to orchestrate order processing through inventory, payment, and shipping
+    is: [traits.correlationIdHeader, traits.asyncResponse, traits.errorResponses]
+    body:
+      application/json:
+        type: object
+        properties:
+          orderId:
+            type: string
+            required: true
+          items:
+            type: array
+            items: common.OrderItem
+            required: true
+    responses:
+      202:
+        description: Order processing started
+      400:
+        description: Invalid processing request
+        body:
+          application/json:
+            type: common.ErrorResponse
+      500:
+        description: Processing error
+        body:
+          application/json:
+            type: common.ErrorResponse

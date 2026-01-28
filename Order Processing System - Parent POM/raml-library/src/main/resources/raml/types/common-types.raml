@@ -1,0 +1,208 @@
+#%RAML 1.0 Library
+
+types:
+  CorrelationId:
+    type: string
+    pattern: '^[a-zA-Z0-9\-]{36}$'
+    description: UUID format correlation ID for request tracing
+
+  OrderStatus:
+    type: string
+    enum:
+      - RECEIVED
+      - INVENTORY_CHECK_STARTED
+      - INVENTORY_CONFIRMED
+      - INVENTORY_FAILED
+      - PAYMENT_COMPLETED
+      - PAYMENT_FAILED
+      - SHIPPING_REQUESTED
+      - SHIPPED
+      - SHIPPING_FAILED
+    description: Enumeration of all possible order states
+
+  OrderItem:
+    type: object
+    properties:
+      itemId:
+        type: string
+        required: true
+        description: Unique item identifier
+      quantity:
+        type: integer
+        required: true
+        minimum: 1
+        description: Quantity ordered
+      price:
+        type: number
+        required: true
+        minimum: 0
+        description: Unit price of the item
+
+  OrderRequest:
+    type: object
+    properties:
+      items:
+        type: array
+        items: OrderItem
+        required: true
+        minItems: 1
+        description: List of items in the order
+      customerId:
+        type: string
+        required: false
+        description: Optional customer identifier
+      shippingAddress:
+        type: string
+        required: false
+        description: Optional shipping address
+
+  OrderResponse:
+    type: object
+    properties:
+      orderId:
+        type: string
+        required: true
+        description: Unique order identifier
+      status:
+        type: OrderStatus
+        required: true
+        description: Current order status
+      createdAt:
+        type: string
+        format: date-time
+        required: true
+        description: Order creation timestamp
+
+  StatusCheckResponse:
+    type: object
+    properties:
+      orderId:
+        type: string
+        required: true
+        description: Order identifier
+      status:
+        type: OrderStatus
+        required: true
+        description: Current order status
+      lastUpdated:
+        type: string
+        format: date-time
+        required: true
+        description: Last status update timestamp
+
+  InventoryCheckRequest:
+    type: object
+    properties:
+      orderId:
+        type: string
+        required: true
+        description: Order identifier
+      items:
+        type: array
+        items: OrderItem
+        required: true
+        description: Items to check availability
+
+  InventoryCheckResponse:
+    type: object
+    properties:
+      available:
+        type: boolean
+        required: true
+        description: Whether all items are available
+      message:
+        type: string
+        required: false
+        description: Additional availability information
+
+  PaymentChargeRequest:
+    type: object
+    properties:
+      orderId:
+        type: string
+        required: true
+        description: Order identifier
+      amount:
+        type: number
+        required: true
+        minimum: 0
+        description: Total payment amount
+      currency:
+        type: string
+        default: USD
+        required: false
+        description: Currency code
+
+  PaymentChargeResponse:
+    type: object
+    properties:
+      transactionId:
+        type: string
+        required: true
+        description: Payment transaction identifier
+      status:
+        type: string
+        enum: [SUCCESS, FAILED, PENDING]
+        required: true
+        description: Payment status
+      timestamp:
+        type: string
+        format: date-time
+        required: true
+        description: Transaction timestamp
+
+  ShippingCreateRequest:
+    type: object
+    properties:
+      orderId:
+        type: string
+        required: true
+        description: Order identifier
+      shippingAddress:
+        type: string
+        required: true
+        description: Shipping destination address
+      items:
+        type: array
+        items: OrderItem
+        required: true
+        description: Items to ship
+
+  ShippingCreateResponse:
+    type: object
+    properties:
+      shippingId:
+        type: string
+        required: true
+        description: Shipping identifier
+      status:
+        type: string
+        enum: [CREATED, PROCESSING, SHIPPED]
+        required: true
+        description: Shipping status
+      estimatedDelivery:
+        type: string
+        format: date
+        required: false
+        description: Estimated delivery date
+
+  ErrorResponse:
+    type: object
+    properties:
+      code:
+        type: string
+        required: true
+        description: Error code
+      message:
+        type: string
+        required: true
+        description: Error message
+      timestamp:
+        type: string
+        format: date-time
+        required: true
+        description: Error occurrence timestamp
+      details:
+        type: string
+        required: false
+        description: Additional error details

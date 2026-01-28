@@ -1,0 +1,76 @@
+#%RAML 1.0 Library
+
+traits:
+  correlationIdHeader:
+    headers:
+      X-Correlation-ID:
+        type: string
+        required: false
+        description: Correlation ID for request tracing
+        example: "550e8400-e29b-41d4-a716-446655440000"
+
+  errorResponses:
+    responses:
+      400:
+        description: Bad Request
+        body:
+          application/json:
+            type: ErrorResponse
+      401:
+        description: Unauthorized
+        body:
+          application/json:
+            type: ErrorResponse
+      500:
+        description: Internal Server Error
+        body:
+          application/json:
+            type: ErrorResponse
+      503:
+        description: Service Unavailable
+        body:
+          application/json:
+            type: ErrorResponse
+
+  rateLimited:
+    headers:
+      X-RateLimit-Limit:
+        type: integer
+        required: false
+        description: Rate limit maximum
+      X-RateLimit-Remaining:
+        type: integer
+        required: false
+        description: Remaining requests in current window
+
+  paged:
+    queryParameters:
+      page:
+        type: integer
+        default: 1
+        minimum: 1
+        description: Page number
+      pageSize:
+        type: integer
+        default: 10
+        minimum: 1
+        maximum: 100
+        description: Number of items per page
+
+  timestamped:
+    headers:
+      X-Timestamp:
+        type: string
+        format: date-time
+        required: false
+        description: Server timestamp
+
+  asyncResponse:
+    responses:
+      202:
+        description: Accepted - Request received and processing asynchronously
+        headers:
+          Location:
+            type: string
+            required: false
+            description: URL to check processing status
