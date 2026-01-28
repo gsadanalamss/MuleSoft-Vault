@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="scatter-gatherFlow" doc:id="326799e3-84bb-45d6-a836-710b387a35d7" >
+		<http:listener doc:name="Listener" doc:id="7a7043dc-a600-4338-b6e1-3663de9fa576" config-ref="HTTP_Listener_config" path="scatter-gather"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="0707f436-9245-4ede-bab9-22a921811f96" >
+			<route >
+				<db:select doc:name="Select" doc:id="988b176c-6e96-4a75-9c7a-939c1fc60be9" config-ref="Database_Config">
+					<db:sql ><![CDATA[select * from vehicles where id = "V001";]]></db:sql>
+				</db:select>
+			</route>
+			<route >
+				<db:select doc:name="Select" doc:id="735159ef-c9d2-43ec-9e5b-246cc7ed171d" config-ref="Database_Config">
+					<db:sql ><![CDATA[select * from employees where emp_id = "E001";]]></db:sql>
+				</db:select>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="bd20ce92-6f82-42b0-97f5-bac900bdd0a4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="44049d25-14dc-4fce-8bf5-0826d27725b5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+(payload[0].payload ++ payload[1].payload) reduce ($ ++ $$)
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="69fd29e9-ecdb-4e00-b000-42688166c31d" message="#[payload]" />
+	</flow>
+</mule>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="mac-with-ollamaFlow" doc:id="6f41f790-5198-42f7-9f91-d4a0916f2b52" >
+		<http:listener doc:name="Listener" doc:id="4300c324-2895-40ab-908f-83f96b3e49d5" config-ref="HTTP_Listener_config" path="/chat" allowedMethods="POST"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ff0640c9-9dff-41a5-b6dd-f428b814d2ba" message="#[payload]"/>
+		<ms-aichain:chat-answer-prompt doc:name="Chat answer prompt" doc:id="a5179fb9-148b-4432-8e50-689dd4b84de5" config-ref="MuleSoft_AI_Chain_Config">
+			<ms-aichain:prompt ><![CDATA[#[%dw 2.0
+output text/plain
+---
+(payload.prompt default error("Missing field 'prompt'")) as String]]]></ms-aichain:prompt>
+		</ms-aichain:chat-answer-prompt>
+		<ee:transform doc:name="Transform Message" doc:id="f017b5e9-8626-41b9-80d0-0d27849c1ca4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="da91981c-d2a4-4140-88f3-01d4a864cb97" message="#[payload]"/>
+		<error-handler ref="global-error-handler" />
+	</flow>
+</mule>

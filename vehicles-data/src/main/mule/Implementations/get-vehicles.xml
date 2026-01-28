@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+
+<flow name="get:\vehicles:vehicle-maintenance-api-config">
+        <!-- <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+-&#45;&#45;
+{
+  vehicles: [
+    {
+      id: "V001",
+      make: "Toyota",
+      model: "Corolla",
+      year: 2022,
+      status: "Active"
+    }, 
+    {
+      id: "V002",
+      make: "Honda",
+      model: "Civic",
+      year: 2021,
+      status: "Inactive"
+    }
+  ]
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform> -->
+		<flow-ref doc:name="Flow Reference" doc:id="87ff51ce-b968-4ade-8458-8b2d18390f1c" name="fetch-vehicles-Sub_Flow"/>
+		<ee:transform doc:name="Transform Message" doc:id="0acbe486-57c8-48ec-9272-78278d8e7bb2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="3c7b64ab-3c35-4df4-a654-f0da3c550f30" message="#[payload]"/>
+    
+</flow>
+
+</mule>

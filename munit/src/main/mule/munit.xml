@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="munitFlow" doc:id="85977f4c-18c2-40a7-91a5-bbc3033a78a7" >
+		<http:listener doc:name="Listener" doc:id="0e0f0113-614f-4fd4-8ff4-5fe098932c81" config-ref="HTTP_Listener_config" path="munit"/>
+		<db:select doc:name="Select" doc:id="be8600db-51dc-4aaa-82d0-eafd0442ac3a" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from vehicles;]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="17c67242-f909-4ad0-93d5-c08f812cfeed" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="c29f7fff-bac0-4d78-aa26-f408f86af99f" message="#[payload]"/>
+	</flow>
+</mule>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+ <flow name="get:\vehicles\(id):vehicle-maintenance-api-config">
+		<flow-ref doc:name="Flow Reference" doc:id="f8dfb226-e2f3-402b-9e7f-dd1cb851a3b9" name="fetch-vehicle-by-id-Sub_Flow"/>
+		<ee:transform doc:name="Transform Message" doc:id="8d2f4216-5601-4d0b-bf24-3a00b8d1b864" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="c89bb608-cc48-4866-b35c-f2a16e915023" message="#[payload]"/>
+    
+</flow>	
+	
+</mule>

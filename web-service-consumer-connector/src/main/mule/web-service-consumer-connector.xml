@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="web-service-consumer-connectorFlow" doc:id="3db53237-ed9c-4bb1-bd5e-2f8ccc6c524e" >
+		<http:listener doc:name="Listener" doc:id="52940a40-39ea-4b14-80fc-18118d71ddb6" config-ref="HTTP_Listener_config" path="wsc"/>
+		<ee:transform doc:name="Transform Message" doc:id="aebf00f6-1616-4b29-a944-9ccad4cd9fc3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://tempuri.org/
+---
+{
+	ns0#Add: {
+		ns0#intA: attributes.queryParams.num1,
+		ns0#intB: attributes.queryParams.num2
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<wsc:consume doc:name="Consume" doc:id="888be975-cab0-4e94-950e-9de6f585366e" config-ref="Web_Service_Consumer_Config" operation="Add"/>
+		<ee:transform doc:name="Transform Message" doc:id="ffc730be-afcb-4406-9286-624e57caaf6b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0ns ns0 http://tempuri.org/
+
+output application/json
+---
+{
+	result: payload.body.ns0#AddResponse.ns0#AddResult
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="964d35a2-e1a7-40b0-9ce8-1c35a64f0714" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="1041eb86-e894-4b99-ab37-328d34577df7">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  errorCode: "WSC Connector",
+  errorType: error.errorType default "UNKNOWN",
+//  errorMessage: error.errorMessage default "Unexpected error",
+  errorDescription: error.description default "",
+//  errorDetailedDescription: error.detailedDescription default "",
+  errorFailingComponent: error.failingComponent default ""
+}
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>
